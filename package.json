@@ -1,0 +1,9 @@
+{
+  "name": "adjudicaciones-docentes-cv",
+  "version": "1.0.0",
+  "description": "Calculador de distancias y adjudicaciones continuas para docentes de la Comunidad Valenciana",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  }
+}

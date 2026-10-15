@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Adjudicaciones Docentes - Calculador de Rutas y Puestos</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    body { font-family: 'Inter', sans-serif; }
+    .badge-vacante { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+    .badge-sust-det { background-color: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+    .badge-sust-indet { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-parcial { background-color: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+    .dragover { border-color: #4f46e5 !important; background-color: #eef2ff !important; }
+    .tab-active { background-color: #4f46e5; color: #ffffff; border-color: #4f46e5; }
+    .tab-inactive { background-color: #ffffff; color: #475569; border-color: #e2e8f0; }
+    .tab-inactive:hover { background-color: #f8fafc; border-color: #cbd5e1; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen p-3 md:p-8">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header -->
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-11 h-11 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-indigo-100">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <h1 class="text-xl md:text-2xl font-bold text-slate-900 tracking-tight">Adjudicaciones Continuas CV</h1>
+          <p class="text-xs md:text-sm text-slate-500">Ordenado siempre por <strong class="text-indigo-600">Distancia real en km</strong> puerta a puerta</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2.5">
+        <!-- Live Sync Button from GVA Web -->
+        <button id="btnActualizarWeb" onclick="actualizarDesdeGVA()" 
+          class="inline-flex items-center gap-2 px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 active:bg-indigo-800 text-white rounded-xl text-xs font-semibold shadow-sm transition-all transform active:scale-95">
+          <i id="syncIcon" class="fa-solid fa-arrows-rotate text-sm"></i>
+          <span id="syncText">Actualizar desde la Web</span>
+        </button>
+
+        <!-- PDF Manual Upload Button -->
+        <label for="pdfFileInput" class="cursor-pointer inline-flex items-center gap-2 px-3.5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold border border-slate-200 transition-colors">
+          <i class="fa-solid fa-file-arrow-up"></i>
+          <span>Subir PDF</span>
+          <input type="file" id="pdfFileInput" accept="application/pdf" class="hidden" onchange="handleFileUpload(event)">
+        </label>
+
+        <!-- Active Date Badge -->
+        <span id="activeDateBadge" class="inline-flex items-center px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse"></span>
+          <span id="activeDateText">Convocatoria cargada</span>
+        </span>
+      </div>
+    </header>
+
+    <!-- Notification Alert Box -->
+    <div id="syncAlert" class="hidden rounded-xl p-4 text-xs flex items-center justify-between border transition-all">
+      <div class="flex items-center gap-2.5">
+        <i id="syncAlertIcon" class="fa-solid fa-circle-info text-base"></i>
+        <span id="syncAlertMessage">Mensaje</span>
+      </div>
+      <button onclick="document.getElementById('syncAlert').classList.add('hidden')" class="text-slate-400 hover:text-slate-600">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Main Configuration Panel -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 md:p-6 space-y-6">
+      
+      <!-- Top Row: Origin City & Filters -->
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-5 items-end">
+        
+        <!-- Origin City -->
+        <div class="md:col-span-5 space-y-2">
+          <label class="block text-sm font-semibold text-slate-700">
+            <i class="fa-solid fa-location-dot text-indigo-600 mr-1.5"></i> Ciudad de Origen (Punto de partida)
+          </label>
+          <div class="relative">
+            <input type="text" id="originInput" value="Carlet" 
+              placeholder="Ej. Carlet, Alginet, Alzira, València, Gandia..."
+              class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-900 font-medium">
+            <button onclick="recalculateAll()" class="absolute right-2 top-2 px-3.5 py-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg transition-colors">
+              Calcular
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-1">
+            <span class="text-xs text-slate-400 self-center mr-1">Rápido:</span>
+            <button onclick="setOrigin('Carlet')" class="px-2 py-0.5 text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-md border border-slate-200 text-slate-600">Carlet</button>
+            <button onclick="setOrigin('Alginet')" class="px-2 py-0.5 text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-md border border-slate-200 text-slate-600">Alginet</button>
+            <button onclick="setOrigin('Alzira')" class="px-2 py-0.5 text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-md border border-slate-200 text-slate-600">Alzira</button>
+            <button onclick="setOrigin('Xàtiva')" class="px-2 py-0.5 text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-md border border-slate-200 text-slate-600">Xàtiva</button>
+            <button onclick="setOrigin('València')" class="px-2 py-0.5 text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-md border border-slate-200 text-slate-600">València</button>
+            <button onclick="setOrigin('Gandia')" class="px-2 py-0.5 text-xs bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 rounded-md border border-slate-200 text-slate-600">Gandia</button>
+          </div>
+        </div>
+
+        <!-- Province Filter -->
+        <div class="md:col-span-3 space-y-2">
+          <label class="block text-sm font-semibold text-slate-700">
+            <i class="fa-solid fa-map text-indigo-600 mr-1.5"></i> Provincia
+          </label>
+          <select id="provinceFilter" onchange="renderTable()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white text-sm">
+            <option value="ALL">Todas las provincias</option>
+            <option value="València">Valencia</option>
+            <option value="Alacant">Alicante</option>
+            <option value="Castelló">Castellón</option>
+          </select>
+        </div>
+
+        <!-- Type Filter: SEPARATING VACANTE, SUSTITUCIÓN DETERMINADA E INDETERMINADA -->
+        <div class="md:col-span-4 space-y-2">
+          <label class="block text-sm font-semibold text-slate-700">
+            <i class="fa-solid fa-briefcase text-indigo-600 mr-1.5"></i> Tipo de Puesto
+          </label>
+          <select id="typeFilter" onchange="renderTable()" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 bg-white text-sm">
+            <option value="ALL">Todos los tipos de puesto</option>
+            <option value="VACANTE">Solo Vacantes</option>
+            <option value="SUST_DETERMINADA">Solo Sustituciones Determinadas</option>
+            <option value="SUST_INDETERMINADA">Solo Sustituciones Indeterminadas</option>
+          </select>
+        </div>
+
+      </div>
+
+      <!-- 1. LAS 4 PESTAÑAS CONFIGURABLES PARA ELEGIR CUALQUIER ESPECIALIDAD DEL PDF -->
+      <div class="border-t border-slate-100 pt-5 space-y-3">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+          <div>
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-2">
+              <i class="fa-solid fa-folder-tree text-indigo-600"></i> Tus 4 Pestañas de Especialidades
+            </h3>
+            <p class="text-xs text-slate-400">Puedes asignar cualquier especialidad del PDF a cada pestaña y filtrar de golpe</p>
+          </div>
+          <!-- View All Mode Button -->
+          <div class="flex items-center gap-2">
+            <button id="btnVerTodas" onclick="setTabFilter('ALL')" 
+              class="px-3 py-1.5 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 tab-active">
+              <i class="fa-solid fa-list-check"></i>
+              <span>Ver las 4 pestañas juntas en los resultados</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Grid with the 4 tabs and their specialty selectors -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          
+          <!-- Pestaña 1 -->
+          <div id="tabCard-0" class="p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/30 transition-all">
+            <div class="flex justify-between items-center mb-1.5">
+              <button onclick="setTabFilter(0)" class="text-xs font-bold text-indigo-900 hover:underline flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-indigo-600 text-white flex items-center justify-center text-[10px]">1</span>
+                <span>Pestaña 1</span>
+              </button>
+              <span id="badge-0" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 text-indigo-700">0 plazas</span>
+            </div>
+            <select id="select-spec-0" onchange="onTabSpecialtyChange(0, this.value)" class="w-full text-xs p-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 focus:ring-1 focus:ring-indigo-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Pestaña 2 -->
+          <div id="tabCard-1" class="p-3 rounded-xl border border-slate-200 bg-white transition-all">
+            <div class="flex justify-between items-center mb-1.5">
+              <button onclick="setTabFilter(1)" class="text-xs font-bold text-slate-800 hover:text-indigo-600 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-[10px]">2</span>
+                <span>Pestaña 2</span>
+              </button>
+              <span id="badge-1" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">0 plazas</span>
+            </div>
+            <select id="select-spec-1" onchange="onTabSpecialtyChange(1, this.value)" class="w-full text-xs p-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 focus:ring-1 focus:ring-indigo-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Pestaña 3 -->
+          <div id="tabCard-2" class="p-3 rounded-xl border border-slate-200 bg-white transition-all">
+            <div class="flex justify-between items-center mb-1.5">
+              <button onclick="setTabFilter(2)" class="text-xs font-bold text-slate-800 hover:text-indigo-600 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-[10px]">3</span>
+                <span>Pestaña 3</span>
+              </button>
+              <span id="badge-2" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">0 plazas</span>
+            </div>
+            <select id="select-spec-2" onchange="onTabSpecialtyChange(2, this.value)" class="w-full text-xs p-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 focus:ring-1 focus:ring-indigo-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+          <!-- Pestaña 4 -->
+          <div id="tabCard-3" class="p-3 rounded-xl border border-slate-200 bg-white transition-all">
+            <div class="flex justify-between items-center mb-1.5">
+              <button onclick="setTabFilter(3)" class="text-xs font-bold text-slate-800 hover:text-indigo-600 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center text-[10px]">4</span>
+                <span>Pestaña 4</span>
+              </button>
+              <span id="badge-3" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">0 plazas</span>
+            </div>
+            <select id="select-spec-3" onchange="onTabSpecialtyChange(3, this.value)" class="w-full text-xs p-1.5 rounded-lg border border-slate-300 bg-white font-medium text-slate-700 focus:ring-1 focus:ring-indigo-500">
+              <!-- Dynamically populated -->
+            </select>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 2. QUICK METRICS CARDS (SEPARATING VACANTES, SUST. DETERMINADAS E INDETERMINADAS) -->
+      <div class="grid grid-cols-2 md:grid-cols-5 gap-3 pt-2">
+        <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+          <div class="text-[11px] font-semibold text-slate-500 uppercase">Total Plazas</div>
+          <div id="statTotal" class="text-2xl font-bold text-slate-900 mt-0.5">0</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200">
+          <div class="text-[11px] font-semibold text-emerald-700 uppercase flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Vacantes
+          </div>
+          <div id="statVacantes" class="text-2xl font-bold text-emerald-900 mt-0.5">0</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-blue-50 border border-blue-200">
+          <div class="text-[11px] font-semibold text-blue-700 uppercase flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span> Sust. Determinadas
+          </div>
+          <div id="statSustDet" class="text-2xl font-bold text-blue-900 mt-0.5">0</div>
+        </div>
+        <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+          <div class="text-[11px] font-semibold text-amber-700 uppercase flex items-center gap-1">
+            <span class="w-2 h-2 rounded-full bg-amber-500"></span> Sust. Indeterminadas
+          </div>
+          <div id="statSustIndet" class="text-2xl font-bold text-amber-900 mt-0.5">0</div>
+        </div>
+        <div class="col-span-2 md:col-span-1 p-3.5 rounded-xl bg-indigo-50 border border-indigo-200">
+          <div class="text-[11px] font-semibold text-indigo-700 uppercase">Más cercano</div>
+          <div id="statClosest" class="text-xs font-bold text-indigo-950 mt-1 truncate">—</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Drag & Drop Zone -->
+    <div id="dropZone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)"
+      class="border-2 border-dashed border-slate-300 rounded-2xl p-4 text-center bg-white/60 hover:bg-indigo-50/40 transition-all cursor-pointer"
+      onclick="document.getElementById('pdfFileInput').click()">
+      <div class="flex items-center justify-center gap-3 text-slate-600">
+        <i class="fa-solid fa-cloud-arrow-up text-xl text-indigo-500"></i>
+        <p class="text-xs font-medium text-slate-700">
+          ¿Quieres cargar otro PDF? <span class="text-indigo-600 font-semibold underline">Arrástralo aquí o haz clic para subirlo</span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Results Table: ALWAYS SORTED BY DISTANCE -->
+    <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      
+      <div class="p-4 md:p-6 border-b border-slate-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+        <div>
+          <h2 class="text-lg font-bold text-slate-900" id="tableHeaderTitle">Puestos Ofertados</h2>
+          <p class="text-xs text-slate-500">
+            <i class="fa-solid fa-arrow-down-1-9 text-indigo-600 mr-1"></i>
+            Siempre ordenados por <strong class="text-indigo-600">Distancia real (km)</strong> desde <span id="currentOriginLabel" class="font-semibold text-slate-800">Carlet</span>
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-xs"></i>
+            <input type="text" id="searchInput" oninput="renderTable()" placeholder="Buscar centro, localidad..." 
+              class="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-48 md:w-64">
+          </div>
+          <button onclick="exportToCSV()" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 border border-slate-200 transition-colors">
+            <i class="fa-solid fa-download"></i> Exportar CSV
+          </button>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        <table class="w-full text-left text-sm text-slate-600">
+          <thead class="bg-slate-50 text-xs uppercase text-slate-500 font-semibold border-b border-slate-200">
+            <tr>
+              <th class="px-4 py-3.5">Especialidad</th>
+              <th class="px-4 py-3.5">Localidad / Centro</th>
+              <th class="px-4 py-3.5 text-center bg-indigo-50/50 text-indigo-700 font-bold border-x border-indigo-100">
+                <i class="fa-solid fa-arrow-down-short-wide mr-1"></i> Distancia (km)
+              </th>
+              <th class="px-4 py-3.5 text-center">Tiempo de viaje</th>
+              <th class="px-4 py-3.5">Tipo de Plaza</th>
+              <th class="px-4 py-3.5">Jornada</th>
+              <th class="px-4 py-3.5">Observaciones</th>
+              <th class="px-4 py-3.5 text-center">Google Maps</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody" class="divide-y divide-slate-100">
+            <!-- Rows inserted here -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="loadingIndicator" class="hidden p-8 text-center text-slate-500">
+        <i class="fa-solid fa-circle-notch fa-spin text-2xl text-indigo-600 mb-2"></i>
+        <p class="text-sm font-medium" id="loadingText">Calculando distancias reales por carretera...</p>
+      </div>
+
+    </div>
+
+    <!-- Footer Notes -->
+    <div class="text-xs text-slate-400 text-center pb-8 space-y-1">
+      <p>Conselleria d'Educació, Cultura, Universitats i Ocupació (GVA) - Adjudicacions Contínues.</p>
+      <p>Cálculo de rutas generado puerta a puerta con OpenStreetMap y OSRM.</p>
+    </div>
+
+  </div>
+
+  <script>
+    // Comprehensive dictionary of coordinates for Valencian municipalities (lat, lon)
+    const TOWN_COORDS = {
+      "carlet": [39.2252, -0.5202],
+      "alginet": [39.2614, -0.4705],
+      "alzira": [39.1506, -0.4358],
+      "algemesi": [39.1895, -0.4436],
+      "algemesí": [39.1895, -0.4436],
+      "benetusser": [39.4243, -0.3995],
+      "benetússer": [39.4243, -0.3995],
+      "valencia": [39.4699, -0.3763],
+      "valència": [39.4699, -0.3763],
+      "torrent": [39.4357, -0.4655],
+      "xirivella": [39.4656, -0.4277],
+      "mislata": [39.4754, -0.4184],
+      "quart de poblet": [39.4827, -0.4431],
+      "manises": [39.4925, -0.4578],
+      "paterna": [39.5029, -0.4414],
+      "burjassot": [39.5097, -0.4132],
+      "pucol": [39.6166, -0.3015],
+      "puçol": [39.6166, -0.3015],
+      "sagunt": [39.6796, -0.2785],
+      "sagunto": [39.6796, -0.2785],
+      "la pobla de farnals": [39.5593, -0.3256],
+      "pobla de farnals": [39.5593, -0.3256],
+      "gandia": [38.9671, -0.1804],
+      "cullera": [39.1645, -0.2541],
+      "sueca": [39.2025, -0.3113],
+      "xativa": [38.9886, -0.5230],
+      "xàtiva": [38.9886, -0.5230],
+      "ontinyent": [38.8221, -0.6074],
+      "onteniente": [38.8221, -0.6074],
+      "alcoi": [38.7052, -0.4743],
+      "alcoy": [38.7052, -0.4743],
+      "benidorm": [38.5411, -0.1225],
+      "altea": [38.6015, -0.0526],
+      "denia": [38.8408, 0.1057],
+      "dénia": [38.8408, 0.1057],
+      "xabia": [38.7894, 0.1661],
+      "xàbia": [38.7894, 0.1661],
+      "javea": [38.7894, 0.1661],
+      "alacant": [38.3452, -0.4810],
+      "alicante": [38.3452, -0.4810],
+      "sant vicent del raspeig": [38.3990, -0.5245],
+      "san vicente del raspeig": [38.3990, -0.5245],
+      "elx": [38.2669, -0.6983],
+      "elche": [38.2669, -0.6983],
+      "elda": [38.4779, -0.7937],
+      "petrer": [38.4842, -0.7712],
+      "petrel": [38.4842, -0.7712],
+      "orihuela": [38.0827, -0.9497],
+      "torrevieja": [37.9787, -0.6822],
+      "castello de la plana": [39.9864, -0.0513],
+      "castelló de la plana": [39.9864, -0.0513],
+      "castellon": [39.9864, -0.0513],
+      "castellón": [39.9864, -0.0513],
+      "vila-real": [39.9377, -0.1011],
+      "villarreal": [39.9377, -0.1011],
+      "borriana": [39.8893, -0.0844],
+      "burriana": [39.8893, -0.0844],
+      "vinaros": [40.4728, 0.4682],
+      "vinaròs": [40.4728, 0.4682],
+      "benicarlo": [40.4194, 0.4269],
+      "benicarló": [40.4194, 0.4269],
+      "vall d alba": [40.1783, -0.0351],
+      "vall d'alba": [40.1783, -0.0351],
+      "torreblanca": [40.1983, 0.2173],
+      "betera": [39.5925, -0.4589],
+      "bétera": [39.5925, -0.4589],
+      "oliva": [38.9202, -0.1186],
+      "calp": [38.6447, 0.0445],
+      "calpe": [38.6447, 0.0445],
+      "crevillent": [38.2491, -0.8089],
+      "novelda": [38.3844, -0.7686],
+      "aspe": [38.3458, -0.7694],
+      "cheste": [39.4939, -0.6836],
+      "chiva": [39.4719, -0.7189],
+      "bunol": [39.4197, -0.7908],
+      "buñol": [39.4197, -0.7908],
+      "requena": [39.4883, -1.1006],
+      "utiel": [39.5672, -1.2056],
+      "alboraia": [39.5019, -0.3514],
+      "alboraya": [39.5019, -0.3514],
+      "picanya": [39.4358, -0.4347],
+      "paiporta": [39.4283, -0.4178],
+      "sedavi": [39.4242, -0.3853],
+      "sedaví": [39.4242, -0.3853],
+      "alfafar": [39.4217, -0.3908],
+      "massamagrell": [39.5703, -0.3325],
+      "moncada": [39.5447, -0.3942],
+      "montcada": [39.5447, -0.3942],
+      "silla": [39.3622, -0.4114],
+      "almussafes": [39.2925, -0.4147],
+      "benifaio": [39.2847, -0.4267],
+      "benifaió": [39.2847, -0.4267],
+      "guadassuar": [39.1861, -0.4789],
+      "l'alcudia": [39.1958, -0.5056],
+      "alcudia": [39.1958, -0.5056],
+      "canals": [38.9619, -0.5847],
+      "alberic": [39.1172, -0.5235],
+      "tavernes de la valldigna": [39.0717, -0.2661],
+      "la nucia": [38.6142, -0.1264],
+      "la vila joiosa": [38.5081, -0.2319],
+      "villajoyosa": [38.5081, -0.2319],
+      "monover": [38.4319, -0.8389],
+      "monóver": [38.4319, -0.8389],
+      "benejuzar": [38.0772, -0.8394],
+      "benejúzar": [38.0772, -0.8394],
+      "enguera": [38.9814, -0.6881],
+      "castalla": [38.5969, -0.6722],
+      "villena": [38.6361, -0.8653],
+      "sant joan d'alacant": [38.4042, -0.4358],
+      "san juan de alicante": [38.4042, -0.4358],
+      "polop": [38.6225, -0.1506],
+      "orxeta": [38.5636, -0.2625],
+      "traiguera": [40.5244, 0.2917],
+      "almenara": [39.7547, -0.2228],
+      "la vall d'uixo": [39.8228, -0.2314],
+      "la vall d'uixó": [39.8228, -0.2314]
+    };
+
+    let PLAZAS = [
+      // 206 - Matemáticas
+      { spec: "206", specName: "Matemáticas", prov: "València", city: "Benetússer", centre: "IES María Carbonell i Sánchez", code: "46026160", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 39.4243, lon: -0.3995 },
+      { spec: "206", specName: "Matemáticas", prov: "València", city: "La Pobla de Farnals", centre: "IES Guillem d'Alcalà", code: "46024229", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 39.5593, lon: -0.3256 },
+      { spec: "206", specName: "Matemáticas", prov: "Castelló", city: "Castelló de la Plana", centre: "IES Juan Bautista Porcar", code: "12005374", type: "Sustitución indeterminada", hours: "Parcial (8 h)", obs: "—", lat: 39.9835, lon: -0.0454 },
+      { spec: "206", specName: "Matemáticas", prov: "Alacant", city: "Altea", centre: "IES Altaia", code: "03010831", type: "Vacante", hours: "Completa", obs: "—", lat: 38.6015, lon: -0.0526 },
+      { spec: "206", specName: "Matemáticas", prov: "Alacant", city: "Sant Vicent del Raspeig", centre: "IES Gaia", code: "03015178", type: "Sustitución indeterminada", hours: "Parcial (14,4 h)", obs: "—", lat: 38.3990, lon: -0.5245 },
+      { spec: "206", specName: "Matemáticas", prov: "Alacant", city: "Elx (Elche)", centre: "IES Cayetano Sempere", code: "03013467", type: "Sustitución indeterminada", hours: "Completa", obs: "PCT Matemàtica", lat: 38.2619, lon: -0.7078 },
+      { spec: "206", specName: "Matemáticas", prov: "Castelló", city: "Vall d'Alba", centre: "IES La Vall d'Alba", code: "12005544", type: "Sustitución determinada", hours: "Completa", obs: "—", lat: 40.1783, lon: -0.0351 },
+      { spec: "206", specName: "Matemáticas", prov: "Alacant", city: "Alacant", centre: "IES Jorge Juan", code: "03001881", type: "Sustitución determinada", hours: "Completa", obs: "—", lat: 38.3512, lon: -0.4907 },
+      { spec: "206", specName: "Matemáticas", prov: "Alacant", city: "Alacant", centre: "IES Miguel Hernández", code: "03001891", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 38.3619, lon: -0.4820 },
+      { spec: "206", specName: "Matemáticas", prov: "Castelló", city: "Torreblanca", centre: "IES El Prat", code: "12005532", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 40.1983, lon: 0.2173 },
+      { spec: "206", specName: "Matemáticas", prov: "Castelló", city: "Vinaròs", centre: "IES José Vilaplana", code: "12003468", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 40.4728, lon: 0.4682 },
+      { spec: "206", specName: "Matemáticas", prov: "Alacant", city: "Orihuela", centre: "IES Gabriel Miró", code: "03007406", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 38.0827, lon: -0.9497 },
+
+      // 276 - Ámbito Científico
+      { spec: "276", specName: "Ámbito Científico", prov: "València", city: "València", centre: "Centre Públic CEED", code: "46025799", type: "Sustitución indeterminada", hours: "Parcial (7 h)", obs: "TEC+MAT+FQ AT. DOMICILIARIA (Atenderá Torrellano)", lat: 39.4716, lon: -0.3957 },
+      { spec: "276", specName: "Ámbito Científico", prov: "Alacant", city: "Sant Joan d'Alacant", centre: "IES Luis García Berlanga", code: "03010478", type: "Sustitución indeterminada", hours: "Parcial (6 h)", obs: "TEC+MAT+FQ AT. DOMICILIARIA", lat: 38.4042, lon: -0.4358 },
+      { spec: "276", specName: "Ámbito Científico", prov: "Castelló", city: "Castelló de la Plana", centre: "IES Francesc Ribalta", code: "12001228", type: "Sustitución indeterminada", hours: "Parcial (7 h)", obs: "TEC+MAT+FQ AT. DOMICILIARIA (Atenderá Almenara)", lat: 39.9868, lon: -0.0427 },
+
+      // 254 - Informática
+      { spec: "254", specName: "Informática", prov: "Alacant", city: "Petrer", centre: "IES Poeta Paco Mollà", code: "03014371", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 38.4842, lon: -0.7712 },
+      { spec: "254", specName: "Informática", prov: "València", city: "Puçol", centre: "IES de Puçol", code: "46020315", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 39.6166, lon: -0.3015 },
+      { spec: "254", specName: "Informática", prov: "València", city: "Alberic", centre: "IES Consuelo Aranda", code: "46021290", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 39.1172, lon: -0.5235 },
+
+      // 219 - Tecnología
+      { spec: "219", specName: "Tecnología", prov: "Alacant", city: "Benissa", centre: "IES Josep Iborra", code: "03011768", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 38.7183, lon: 0.0505 },
+      { spec: "219", specName: "Tecnología", prov: "Alacant", city: "Teulada", centre: "IES de Teulada", code: "03015464", type: "Sustitución indeterminada", hours: "Completa", obs: "ING-B2", lat: 38.7291, lon: 0.1039 },
+      { spec: "219", specName: "Tecnología", prov: "Alacant", city: "Elda", centre: "IES Monastil", code: "03010156", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 38.4779, lon: -0.7937 },
+      { spec: "219", specName: "Tecnología", prov: "Alacant", city: "Elx", centre: "IES Montserrat Roig", code: "03012050", type: "Sustitución indeterminada", hours: "Completa", obs: "—", lat: 38.2721, lon: -0.6975 }
+    ];
+
+    let userTabs = [
+      { code: "206", name: "Matemáticas" },
+      { code: "276", name: "Ámbito Científico" },
+      { code: "254", name: "Informática" },
+      { code: "219", name: "Tecnología" }
+    ];
+
+    try {
+      const saved = localStorage.getItem("gva_user_tabs_v2");
+      if (saved) userTabs = JSON.parse(saved);
+    } catch(e) {}
+
+    let activeTabFilter = 'ALL';
+    let currentOriginCoords = TOWN_COORDS["carlet"];
+    let currentCalculatedData = [];
+
+    async function getAccurateRoadRoute(lat1, lon1, lat2, lon2) {
+      try {
+        const res = await fetch(`/api/route?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.distKm) {
+            return {
+              distKm: data.distKm,
+              minutes: data.minutes,
+              durationStr: formatDuration(data.minutes)
+            };
+          }
+        }
+      } catch (err) {
+        try {
+          const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`;
+          const res = await fetch(url);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.routes && data.routes.length > 0) {
+              const distKm = Math.round((data.routes[0].distance / 1000) * 10) / 10;
+              const minutes = Math.round(data.routes[0].duration / 60);
+              return { distKm, minutes, durationStr: formatDuration(minutes) };
+            }
+          }
+        } catch (e) {}
+      }
+
+      const R = 6371;
+      const dLat = (lat2 - lat1) * Math.PI / 180;
+      const dLon = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+      const straightKm = R * c;
+      
+      let roadFactor = 1.28;
+      if (straightKm > 100) roadFactor = 1.24;
+      else if (straightKm < 25) roadFactor = 1.33;
+
+      const roadKm = Math.round(straightKm * roadFactor * 10) / 10;
+      let avgSpeed = 82;
+      if (roadKm > 100) avgSpeed = 96;
+      else if (roadKm < 30) avgSpeed = 68;
+
+      const minutes = Math.round((roadKm / avgSpeed) * 60);
+      return { distKm: roadKm, minutes, durationStr: formatDuration(minutes) };
+    }
+
+    function formatDuration(totalMins) {
+      const h = Math.floor(totalMins / 60);
+      const m = totalMins % 60;
+      return h > 0 ? `${h} h ${m} min` : `${m} min`;
+    }
+
+    function setOrigin(city) {
+      document.getElementById('originInput').value = city;
+      recalculateAll();
+    }
+
+    async function recalculateAll() {
+      const originName = document.getElementById('originInput').value.trim();
+      if (!originName) return;
+
+      document.getElementById('currentOriginLabel').innerText = originName;
+      document.getElementById('loadingIndicator').classList.remove('hidden');
+
+      const normName = originName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+      if (TOWN_COORDS[normName]) {
+        currentOriginCoords = { lat: TOWN_COORDS[normName][0], lon: TOWN_COORDS[normName][1] };
+      } else {
+        try {
+          const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(originName + ', Spain')}&format=json&limit=1`);
+          const data = await resp.json();
+          if (data && data.length > 0) {
+            currentOriginCoords = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) };
+          }
+        } catch (e) {
+          console.error("Geocoding failed, using fallback:", e);
+        }
+      }
+
+      const calculated = [];
+      for (const p of PLAZAS) {
+        const route = await getAccurateRoadRoute(currentOriginCoords.lat, currentOriginCoords.lon, p.lat, p.lon);
+        calculated.push({
+          ...p,
+          distKm: route.distKm,
+          minutes: route.minutes,
+          durationStr: route.durationStr,
+          gmapsUrl: `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originName + ', Spain')}&destination=${encodeURIComponent(p.centre + ', ' + p.city + ', Spain')}`
+        });
+      }
+
+      // SIEMPRE ORDENADOS POR DISTANCIA (menor a mayor km)
+      calculated.sort((a, b) => a.distKm - b.distKm);
+
+      currentCalculatedData = calculated;
+      document.getElementById('loadingIndicator').classList.add('hidden');
+      updateTabBadges();
+      renderTable();
+    }
+
+    function setTabFilter(tabIndex) {
+      activeTabFilter = tabIndex;
+      
+      const btnAll = document.getElementById('btnVerTodas');
+      if (activeTabFilter === 'ALL') {
+        btnAll.className = "px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 tab-active";
+      } else {
+        btnAll.className = "px-3.5 py-1.5 text-xs font-semibold rounded-xl border transition-all flex items-center gap-1.5 tab-inactive";
+      }
+
+      for (let i = 0; i < 4; i++) {
+        const card = document.getElementById(`tabCard-${i}`);
+        if (activeTabFilter === i) {
+          card.className = "p-3 rounded-xl border-2 border-indigo-500 bg-indigo-50/40 shadow-sm transition-all";
+        } else {
+          card.className = "p-3 rounded-xl border border-slate-200 bg-white transition-all";
+        }
+      }
+
+      renderTable();
+    }
+
+    function onTabSpecialtyChange(tabIndex, newCode) {
+      const found = PLAZAS.find(p => p.spec === newCode);
+      const newName = found ? found.specName : newCode;
+
+      userTabs[tabIndex] = { code: newCode, name: newName };
+      try {
+        localStorage.setItem("gva_user_tabs_v2", JSON.stringify(userTabs));
+      } catch(e) {}
+
+      updateTabBadges();
+      renderTable();
+    }
+
+    function populateAllTabDropdowns() {
+      const specsMap = new Map();
+      PLAZAS.forEach(p => {
+        if (!specsMap.has(p.spec)) specsMap.set(p.spec, p.specName);
+      });
+
+      for (let i = 0; i < 4; i++) {
+        const select = document.getElementById(`select-spec-${i}`);
+        select.innerHTML = '';
+        specsMap.forEach((name, code) => {
+          const count = PLAZAS.filter(p => p.spec === code).length;
+          const opt = document.createElement('option');
+          opt.value = code;
+          opt.innerText = `${code} - ${name} (${count})`;
+          select.appendChild(opt);
+        });
+
+        if (userTabs[i] && specsMap.has(userTabs[i].code)) {
+          select.value = userTabs[i].code;
+        } else if (select.options.length > i) {
+          select.selectedIndex = i;
+          userTabs[i] = { code: select.value, name: specsMap.get(select.value) };
+        }
+      }
+    }
+
+    function updateTabBadges() {
+      for (let i = 0; i < 4; i++) {
+        const count = currentCalculatedData.filter(p => p.spec === userTabs[i].code).length;
+        document.getElementById(`badge-${i}`).innerText = `${count} plazas`;
+      }
+    }
+
+    function renderTable() {
+      const provFilter = document.getElementById('provinceFilter').value;
+      const typeFilter = document.getElementById('typeFilter').value;
+      const search = document.getElementById('searchInput').value.toLowerCase();
+
+      let activeCodes = [];
+      let headerTitle = "";
+      if (activeTabFilter === 'ALL') {
+        activeCodes = userTabs.map(t => t.code);
+        headerTitle = "Puestos de las 4 pestañas seleccionadas";
+      } else {
+        activeCodes = [userTabs[activeTabFilter].code];
+        headerTitle = `Puestos de ${userTabs[activeTabFilter].code} - ${userTabs[activeTabFilter].name}`;
+      }
+      document.getElementById('tableHeaderTitle').innerText = headerTitle;
+
+      const tbody = document.getElementById('tableBody');
+      tbody.innerHTML = '';
+
+      let vacantesCount = 0;
+      let sustDetCount = 0;
+      let sustIndetCount = 0;
+
+      const filtered = currentCalculatedData.filter(item => {
+        if (!activeCodes.includes(item.spec)) return false;
+
+        if (provFilter !== 'ALL' && item.prov !== provFilter) return false;
+
+        const t = item.type.toUpperCase();
+        if (typeFilter === 'VACANTE' && !t.includes('VACANTE')) return false;
+        if (typeFilter === 'SUST_DETERMINADA' && (!t.includes('DETERMINADA') || t.includes('INDETERMINADA'))) return false;
+        if (typeFilter === 'SUST_INDETERMINADA' && !t.includes('INDETERMINADA')) return false;
+
+        if (search) {
+          const hay = `${item.city} ${item.centre} ${item.specName} ${item.code} ${item.obs}`.toLowerCase();
+          if (!hay.includes(search)) return false;
+        }
+        return true;
+      });
+
+      // ORDENADOS POR DISTANCIA (km con 1 decimal)
+      filtered.sort((a, b) => a.distKm - b.distKm);
+
+      document.getElementById('statTotal').innerText = filtered.length;
+      if (filtered.length > 0) {
+        document.getElementById('statClosest').innerText = `${filtered[0].city} (${filtered[0].distKm.toFixed(1).replace('.', ',')} km)`;
+      } else {
+        document.getElementById('statClosest').innerText = '—';
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="px-6 py-12 text-center text-slate-400">
+              <i class="fa-regular fa-folder-open text-3xl mb-2 text-slate-300"></i>
+              <p class="font-medium text-slate-600">No se encontraron puestos para esta selección</p>
+              <p class="text-xs text-slate-400 mt-1">Prueba a cambiar de pestaña o ajustar los filtros.</p>
+            </td>
+          </tr>
+        `;
+        document.getElementById('statVacantes').innerText = 0;
+        document.getElementById('statSustDet').innerText = 0;
+        document.getElementById('statSustIndet').innerText = 0;
+        return;
+      }
+
+      filtered.forEach((row) => {
+        const isVacante = row.type.toUpperCase().includes('VACANTE');
+        const isSustDet = row.type.toUpperCase().includes('SUSTITUCIÓN DETERMINADA') || (row.type.toUpperCase().includes('DETERMINADA') && !row.type.toUpperCase().includes('INDETERMINADA'));
+        
+        let badgeClass = 'badge-sust-indet';
+        let badgeText = 'Sustitución indeterminada';
+
+        if (isVacante) {
+          vacantesCount++;
+          badgeClass = 'badge-vacante';
+          badgeText = 'Vacante';
+        } else if (isSustDet) {
+          sustDetCount++;
+          badgeClass = 'badge-sust-det';
+          badgeText = 'Sustitución determinada';
+        } else {
+          sustIndetCount++;
+        }
+
+        const hoursBadge = row.hours.includes('Parcial') ? 'badge-parcial font-medium' : 'text-slate-600';
+
+        const tr = document.createElement('tr');
+        tr.className = "hover:bg-slate-50 transition-colors border-b border-slate-100";
+
+        tr.innerHTML = `
+          <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">
+            <span class="inline-block px-2 py-0.5 rounded text-xs bg-slate-100 text-slate-700 font-mono font-bold mr-1.5">${row.spec}</span>
+            <span class="text-xs text-slate-500">${row.specName}</span>
+          </td>
+          <td class="px-4 py-3">
+            <div class="font-medium text-slate-900">${row.city}</div>
+            <div class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
+              <span>${row.centre}</span>
+              <span class="text-[11px] text-slate-400">(${row.code})</span>
+            </div>
+          </td>
+          <td class="px-4 py-3 text-center whitespace-nowrap font-mono font-bold text-indigo-700 bg-indigo-50/30 border-x border-indigo-100/50">
+            ${row.distKm.toFixed(1).replace('.', ',')} km
+          </td>
+          <td class="px-4 py-3 text-center whitespace-nowrap">
+            <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${row.minutes <= 45 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (row.minutes <= 90 ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-slate-100 text-slate-700')}">
+              <i class="fa-solid fa-car mr-1 text-[11px]"></i> ${row.durationStr}
+            </span>
+          </td>
+          <td class="px-4 py-3 whitespace-nowrap">
+            <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-semibold ${badgeClass}">
+              ${badgeText}
+            </span>
+          </td>
+          <td class="px-4 py-3 whitespace-nowrap text-xs">
+            <span class="${hoursBadge} px-2 py-0.5 rounded">${row.hours}</span>
+          </td>
+          <td class="px-4 py-3 text-xs text-slate-500 max-w-xs truncate" title="${row.obs}">
+            ${row.obs}
+          </td>
+          <td class="px-4 py-3 text-center whitespace-nowrap">
+            <a href="${row.gmapsUrl}" target="_blank" class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white transition-colors" title="Ver ruta en Google Maps">
+              <i class="fa-solid fa-diamond-turn-right text-sm"></i>
+            </a>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      document.getElementById('statVacantes').innerText = vacantesCount;
+      document.getElementById('statSustDet').innerText = sustDetCount;
+      document.getElementById('statSustIndet').innerText = sustIndetCount;
+    }
+
+    async function actualizarDesdeGVA() {
+      const btn = document.getElementById('btnActualizarWeb');
+      const icon = document.getElementById('syncIcon');
+      const text = document.getElementById('syncText');
+
+      icon.classList.add('fa-spin');
+      text.innerText = 'Consultando GVA...';
+      btn.disabled = true;
+
+      try {
+        const response = await fetch('/api/actualizar', { method: 'POST' });
+        const result = await response.json();
+
+        if (result.success) {
+          showAlert(`¡Éxito! Descargado ${result.filename || result.data?.filename}. Procesando datos...`, 'success');
+          
+          if (result.pdfBase64) {
+            // Vercel serverless function mode: decode base64 buffer directly
+            const binary = atob(result.pdfBase64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            await parsePdfArrayBuffer(bytes.buffer, result.filename);
+          } else {
+            // Local server mode
+            const pdfResp = await fetch(`/api/pdf/${result.data.filename}`);
+            const arrayBuffer = await pdfResp.arrayBuffer();
+            await parsePdfArrayBuffer(arrayBuffer, result.data.filename);
+          }
+        } else {
+          showAlert(`Error al actualizar desde GVA: ${result.error}`, 'error');
+        }
+      } catch (err) {
+        console.warn('Backend local no disponible:', err);
+        showAlert('No se pudo conectar con el servicio de actualización. Si estás en local, inicia "iniciar_app.bat". O arrastra el archivo PDF aquí.', 'warning');
+      } finally {
+        icon.classList.remove('fa-spin');
+        text.innerText = 'Actualizar desde la Web';
+        btn.disabled = false;
+      }
+    }
+
+    function showAlert(msg, type) {
+      const box = document.getElementById('syncAlert');
+      const msgSpan = document.getElementById('syncAlertMessage');
+      const icon = document.getElementById('syncAlertIcon');
+      box.classList.remove('hidden', 'bg-emerald-50', 'text-emerald-800', 'border-emerald-200', 'bg-rose-50', 'text-rose-800', 'border-rose-200', 'bg-amber-50', 'text-amber-800', 'border-amber-200');
+
+      if (type === 'success') {
+        box.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-200');
+        icon.className = 'fa-solid fa-circle-check text-emerald-600';
+      } else if (type === 'error') {
+        box.classList.add('bg-rose-50', 'text-rose-800', 'border-rose-200');
+        icon.className = 'fa-solid fa-circle-exclamation text-rose-600';
+      } else {
+        box.classList.add('bg-amber-50', 'text-amber-800', 'border-amber-200');
+        icon.className = 'fa-solid fa-triangle-exclamation text-amber-600';
+      }
+      msgSpan.innerText = msg;
+    }
+
+    function handleDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('dragover'); }
+    function handleDragLeave(e) { e.preventDefault(); document.getElementById('dropZone').classList.remove('dragover'); }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('dragover');
+      if (e.dataTransfer.files && e.dataTransfer.files.length > 0) processPdfFile(e.dataTransfer.files[0]);
+    }
+    function handleFileUpload(e) {
+      if (e.target.files && e.target.files.length > 0) processPdfFile(e.target.files[0]);
+    }
+
+    async function processPdfFile(file) {
+      if (!file || file.type !== 'application/pdf') {
+        alert('Por favor selecciona un archivo PDF de adjudicaciones.');
+        return;
+      }
+      const arrayBuffer = await file.arrayBuffer();
+      await parsePdfArrayBuffer(arrayBuffer, file.name);
+    }
+
+    async function parsePdfArrayBuffer(arrayBuffer, filename) {
+      document.getElementById('loadingIndicator').classList.remove('hidden');
+      document.getElementById('loadingText').innerText = `Procesando ${filename}...`;
+      document.getElementById('activeDateText').innerText = filename;
+
+      try {
+        const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+        const newPlazas = [];
+        const foundSpecs = new Map();
+
+        let currentSpec = "";
+        let currentSpecName = "";
+        let currentProv = "València";
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          
+          const lineMap = new Map();
+          for (const item of textContent.items) {
+            const str = item.str.trim();
+            if (!str) continue;
+            const y = Math.round(item.transform[5] / 3) * 3;
+            if (!lineMap.has(y)) lineMap.set(y, []);
+            lineMap.get(y).push(item);
+          }
+
+          const sortedY = Array.from(lineMap.keys()).sort((a, b) => b - a);
+          const lines = sortedY.map(y => {
+            const rowItems = lineMap.get(y).sort((a, b) => a.transform[4] - b.transform[4]);
+            return rowItems.map(it => it.str.trim()).join(' ');
+          });
+
+          for (let j = 0; j < lines.length; j++) {
+            const line = lines[j];
+
+            if (line.includes('ESPECIALIDAD/ESPECIALITAT:') || line.includes('ESPECIALITAT:')) {
+              let fullSpec = line.replace(/.*ESPECIALIDAD\/ESPECIALITAT:|.*ESPECIALITAT:/, '').trim();
+              if (!fullSpec && j + 1 < lines.length) fullSpec = lines[++j];
+              const match = fullSpec.match(/([0-9A-Z]{3})\s*-\s*([^0-9]+)/);
+              if (match) {
+                currentSpec = match[1].trim();
+                currentSpecName = match[2].trim();
+                foundSpecs.set(currentSpec, currentSpecName);
+              }
+            }
+
+            if (line.includes('PROVINCIA/PROVINCIA:') || line.includes('PROVINCIA:')) {
+              if (/Alacant|Alicante/i.test(line)) currentProv = 'Alacant';
+              else if (/Castell[oó]/i.test(line)) currentProv = 'Castelló';
+              else if (/Val[eè]ncia/i.test(line)) currentProv = 'València';
+            } else if (line === 'Alacant' || line === 'Castelló' || line === 'València') {
+              currentProv = line;
+            }
+
+            const rowMatch = line.match(/([A-ZÁÉÍÓÚÀÈÒÏÜÇ\s\-\'\.]+?)\s+-\s+(\d{8})\s+-\s+(.+)/i);
+            if (rowMatch && currentSpec) {
+              let rawCity = rowMatch[1].trim().replace(/^\d+\s+/, '');
+              const code = rowMatch[2].trim();
+              const remainder = rowMatch[3].trim();
+
+              let type = "Sustitución indeterminada";
+              if (/VACANTE/i.test(remainder)) type = "Vacante";
+              else if (/SUSTITUCI[OÓ]N\s+DETERMINADA/i.test(remainder)) type = "Sustitución determinada";
+              else if (/SUSTITUCI[OÓ]N\s+INDETERMINADA/i.test(remainder)) type = "Sustitución indeterminada";
+
+              let centre = remainder;
+              const centreMatch = remainder.match(/^(.+?)\s+(\d{6,7})\b/);
+              if (centreMatch) {
+                centre = centreMatch[1].trim();
+              } else {
+                centre = remainder.replace(/\s+(VACANTE|SUSTITUCI[OÓ]N.*|NO|SI|\d{6,7}).*$/i, '').trim();
+              }
+
+              let hours = "Completa";
+              const hoursMatch = remainder.match(/\b(\d{1,2}(?:,\d+)?)\s*(?:h|hores)?\s+(?:NO|SI)\b/i) || remainder.match(/\b(\d{1,2},\d+)\b/);
+              if (hoursMatch) hours = `Parcial (${hoursMatch[1]} h)`;
+
+              let obs = "—";
+              if (/PCT/i.test(remainder)) obs = "PCT";
+              if (/DOMICILIARIA/i.test(remainder)) obs = "Atención domiciliaria";
+              if (/Centre singular|singular/i.test(remainder)) obs = "Centre singular";
+              if (/dif[ií]cil/i.test(remainder)) obs += (obs !== "—" ? " / " : "") + "Difícil provisió";
+
+              const normCity = rawCity.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+              const cityCoord = TOWN_COORDS[normCity] || [39.4699, -0.3763];
+
+              newPlazas.push({
+                spec: currentSpec,
+                specName: currentSpecName || currentSpec,
+                prov: currentProv,
+                city: rawCity,
+                centre: centre,
+                code: code,
+                type: type,
+                hours: hours,
+                obs: obs,
+                lat: cityCoord[0],
+                lon: cityCoord[1]
+              });
+            }
+          }
+        }
+
+        if (newPlazas.length > 0) {
+          PLAZAS = newPlazas;
+          populateAllTabDropdowns();
+          document.getElementById('activeDateText').innerText = `${filename} (${newPlazas.length} plazas)`;
+          showAlert(`¡Éxito! Extraídas ${newPlazas.length} plazas de ${foundSpecs.size} especialidades de ${filename}.`, 'success');
+          await recalculateAll();
+        } else {
+          showAlert('No se detectaron puestos con el formato habitual en este PDF.', 'error');
+        }
+      } catch (err) {
+        console.error('Error parseando PDF:', err);
+        showAlert(`Error al procesar el archivo: ${err.message}`, 'error');
+      } finally {
+        document.getElementById('loadingIndicator').classList.add('hidden');
+      }
+    }
+
+    function exportToCSV() {
+      const activeCodes = activeTabFilter === 'ALL' ? userTabs.map(t => t.code) : [userTabs[activeTabFilter].code];
+      const headers = ["Especialidad", "Nombre Especialidad", "Provincia", "Ciudad", "Centro", "Código", "Distancia (km)", "Tiempo", "Tipo Plaza", "Jornada", "Observaciones"];
+      const rows = currentCalculatedData.filter(p => activeCodes.includes(p.spec))
+        .map(r => [r.spec, `"${r.specName}"`, r.prov, `"${r.city}"`, `"${r.centre}"`, r.code, r.distKm, `"${r.durationStr}"`, `"${r.type}"`, `"${r.hours}"`, `"${r.obs}"`]);
+      
+      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `adjudicaciones_${document.getElementById('originInput').value}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    window.onload = function() {
+      populateAllTabDropdowns();
+      recalculateAll();
+    };
+  </script>
+</body>
+</html>
