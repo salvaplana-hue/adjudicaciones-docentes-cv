@@ -4,6 +4,7 @@
   "description": "Calculador de distancias y adjudicaciones continuas para docentes de la Comunidad Valenciana",
   "private": true,
   "scripts": {
+    "build": "echo 'No build step required'",
     "start": "node server.js"
   }
 }
