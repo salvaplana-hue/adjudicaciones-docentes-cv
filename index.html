@@ -317,7 +317,7 @@
   </div>
 
   <script>
-    // Comprehensive dictionary of coordinates for Valencian municipalities (lat, lon)
+        // Comprehensive dictionary of coordinates for Valencian municipalities (lat, lon)
     const TOWN_COORDS = {
       "carlet": [39.2252, -0.5202],
       "alginet": [39.2614, -0.4705],
@@ -339,6 +339,8 @@
       "puçol": [39.6166, -0.3015],
       "sagunt": [39.6796, -0.2785],
       "sagunto": [39.6796, -0.2785],
+      "puerto de sagunto": [39.6601, -0.2227],
+      "el puerto": [39.6601, -0.2227],
       "la pobla de farnals": [39.5593, -0.3256],
       "pobla de farnals": [39.5593, -0.3256],
       "gandia": [38.9671, -0.1804],
@@ -412,30 +414,211 @@
       "benifaio": [39.2847, -0.4267],
       "benifaió": [39.2847, -0.4267],
       "guadassuar": [39.1861, -0.4789],
-      "l'alcudia": [39.1958, -0.5056],
-      "alcudia": [39.1958, -0.5056],
-      "canals": [38.9619, -0.5847],
-      "alberic": [39.1172, -0.5235],
-      "tavernes de la valldigna": [39.0717, -0.2661],
-      "la nucia": [38.6142, -0.1264],
-      "la vila joiosa": [38.5081, -0.2319],
-      "villajoyosa": [38.5081, -0.2319],
-      "monover": [38.4319, -0.8389],
-      "monóver": [38.4319, -0.8389],
-      "benejuzar": [38.0772, -0.8394],
-      "benejúzar": [38.0772, -0.8394],
-      "enguera": [38.9814, -0.6881],
-      "castalla": [38.5969, -0.6722],
-      "villena": [38.6361, -0.8653],
-      "sant joan d'alacant": [38.4042, -0.4358],
-      "san juan de alicante": [38.4042, -0.4358],
-      "polop": [38.6225, -0.1506],
-      "orxeta": [38.5636, -0.2625],
-      "traiguera": [40.5244, 0.2917],
-      "almenara": [39.7547, -0.2228],
       "la vall d'uixo": [39.8228, -0.2314],
-      "la vall d'uixó": [39.8228, -0.2314]
+      "la vall d'uixó": [39.8228, -0.2314],
+      "canals": [38.9619, -0.5847],
+
+      // Expanded municipalities
+      "cocentaina": [38.7447, -0.4402],
+      "picassent": [39.3625, -0.4606],
+      "l'alfas del pi": [38.5815, -0.0305],
+      "alfas del pi": [38.5815, -0.0305],
+      "pedreguer": [38.7933, 0.0345],
+      "tormos": [38.8016, -0.0725],
+      "finestrat": [38.5678, -0.2128],
+      "cox": [38.1408, -0.8847],
+      "jacarilla": [38.0608, -0.8686],
+      "los montesinos": [38.0286, -0.7258],
+      "montesinos": [38.0286, -0.7258],
+      "san fulgencio": [38.1186, -0.7183],
+      "almassora": [39.9472, -0.0636],
+      "almazora": [39.9472, -0.0636],
+      "la pobla de vallbona": [39.5925, -0.5539],
+      "pobla de vallbona": [39.5925, -0.5539],
+      "vilamarxant": [39.5683, -0.6225],
+      "villamarchante": [39.5683, -0.6225],
+      "rafelguaraf": [39.0522, -0.4561],
+      "el real de gandia": [38.9483, -0.1919],
+      "real de gandia": [38.9483, -0.1919],
+      "simat de la valldigna": [39.0436, -0.3128],
+      "otos": [38.8539, -0.4447],
+      "benissa": [38.7153, 0.0506],
+      "nules": [39.8531, -0.1558],
+      "onda": [39.9633, -0.2614],
+      "aldaia": [39.4647, -0.4608],
+      "aldaya": [39.4647, -0.4608],
+      "foios": [39.5392, -0.4042],
+      "sumacarcer": [39.0967, -0.6292],
+      "sumacàrcer": [39.0967, -0.6292],
+      "atzeneta d'albaida": [38.8358, -0.4967],
+      "rafelbunyol": [39.5886, -0.3339],
+      "vilallonga": [38.8856, -0.2078],
+      "villalonga": [38.8856, -0.2078],
+      "moixent": [38.8744, -0.7511],
+      "mogente": [38.8744, -0.7511],
+      "segorbe": [39.8519, -0.4875],
+      "borriol": [40.0436, -0.0717],
+      "albal": [39.3967, -0.4150],
+      "catadau": [39.2764, -0.5694],
+      "llanera de ranes": [38.9933, -0.5706],
+      "bigastro": [38.0628, -0.8956],
+      "atzeneta del maestrat": [40.2167, -0.1706],
+      "jalance": [39.1917, -1.0778],
+      "castello de rugat": [38.8753, -0.3839],
+      "castelló de rugat": [38.8753, -0.3839],
+      "bolulla": [38.6756, -0.1147],
+      "tibi": [38.5308, -0.6806],
+      "el campello": [38.4283, -0.2975],
+      "campello": [38.4283, -0.2975],
+      "mutxamel": [38.4161, -0.4456],
+      "muchamiel": [38.4161, -0.4456],
+      "guardamar del segura": [38.0897, -0.6553],
+      "l'alcora": [40.0750, -0.2139],
+      "alcora": [40.0750, -0.2139],
+      "benicassim": [40.0547, 0.0639],
+      "benicàssim": [40.0547, 0.0639],
+      "orpesa": [40.0928, 0.1347],
+      "oropesa del mar": [40.0928, 0.1347],
+      "alaquas": [39.4578, -0.4575],
+      "alaquàs": [39.4578, -0.4575],
+      "catarroja": [39.4033, -0.4031],
+      "turis": [39.3889, -0.7111],
+      "turís": [39.3889, -0.7111],
+      "rotova": [38.9328, -0.2581],
+      "ròtova": [38.9328, -0.2581],
+      "aielo de malferit": [38.8781, -0.5917],
+      "carcaixent": [39.1217, -0.4506],
+      "carcagente": [39.1217, -0.4506],
+      "castello": [39.0789, -0.5128],
+      "castelló": [39.0789, -0.5128],
+      "castelló de la ribera": [39.0789, -0.5128],
+      "albaida": [38.8417, -0.4478],
+      "ondara": [38.8278, 0.0175],
+      "pego": [38.8419, -0.1169],
+      "redovan": [38.1139, -0.9050],
+      "redován": [38.1139, -0.9050],
+      "canet d'en berenguer": [39.6797, -0.2225],
+      "navarres": [39.1011, -0.6936],
+      "navarrés": [39.1011, -0.6936],
+      "l'olleria": [38.9133, -0.5481],
+      "olleria": [38.9133, -0.5481],
+      "vilafranca": [40.4283, -0.2575],
+      "villafranca del cid": [40.4283, -0.2575],
+      "l'eliana": [39.5667, -0.5333],
+      "eliana": [39.5667, -0.5333],
+      "ayora": [39.0594, -1.0558],
+      "sax": [38.5392, -0.8178],
+      "callosa de segura": [38.1231, -0.8786],
+      "lliria": [39.6253, -0.5947],
+      "llíria": [39.6253, -0.5947],
+      "la pobla del duc": [38.9042, -0.4206],
+      "pobla del duc": [38.9042, -0.4206],
+      "albatera": [38.1783, -0.8697],
+      "la font d'en carros": [38.9169, -0.1706],
+      "la font d'en carròs": [38.9169, -0.1706],
+      "font d'en carros": [38.9169, -0.1706],
+      "orxeta": [38.5647, -0.2644],
+      "almenara": [39.7533, -0.2247],
+      "torrellano": [38.2936, -0.5847],
+      "heredades": [38.1100, -0.7911],
+      "orihuela costa": [37.9317, -0.7258],
+      "jesus pobre": [38.8055, 0.0827],
+      "jesús pobre": [38.8055, 0.0827],
+      "masarrochos": [39.5303, -0.4094],
+      "massarrojos": [39.5303, -0.4094],
+      "grau de gandia": [38.9958, -0.1603],
+      "grau i platja": [38.9958, -0.1603],
+      "canada del fenollar": [38.4069, -0.5654],
+      "cañada del fenollar": [38.4069, -0.5654],
+      "la canada": [39.5256, -0.4744],
+      "la cañada": [39.5256, -0.4744],
+      "castalla": [38.5964, -0.6722],
+      "ibi": [38.6258, -0.5739],
+      "onil": [38.6292, -0.6739],
+      "monovar": [38.4358, -0.8389],
+      "monòver": [38.4358, -0.8389],
+      "almoradi": [38.1100, -0.7911],
+      "almoradí": [38.1100, -0.7911],
+      "villena": [38.6369, -0.8661],
+      "banyeres de mariola": [38.7153, -0.6606],
+      "callosa d'en sarria": [38.6517, -0.1206],
+      "callosa d'en sarrià": [38.6517, -0.1206],
+      "teulada": [38.7289, 0.1039],
+      "moraira": [38.6872, 0.1339],
+      "gata de gorgos": [38.7725, 0.0864],
+      "xalo": [38.7408, -0.0125],
+      "xaló": [38.7408, -0.0125],
+      "biar": [38.6314, -0.7678],
+      "benejuzar": [38.0778, -0.8406],
+      "benejúzar": [38.0778, -0.8406],
+      "catral": [38.1583, -0.8039],
+      "dolores": [38.1158, -0.7706],
+      "san miguel de salinas": [37.9792, -0.7894],
+      "pilar de la horadada": [37.8664, -0.7917],
+      "monforte del cid": [38.3792, -0.7283],
+      "agost": [38.4386, -0.6389],
+      "xixona": [38.5397, -0.5056],
+      "jijona": [38.5397, -0.5056],
+      "san joan d'alacant": [38.4017, -0.4372],
+      "sant joan d'alacant": [38.4017, -0.4372],
+      "villajoyosa": [38.5081, -0.2325],
+      "la vila joiosa": [38.5081, -0.2325],
+      "polop": [38.6219, -0.1506],
+      "la nucia": [38.6186, -0.1247],
+      "alcala de xivert": [40.3047, 0.3236],
+      "alcossebre": [40.2444, 0.2789],
+      "peniscola": [40.3586, 0.4006],
+      "peñíscola": [40.3586, 0.4006],
+      "betxi": [39.9283, -0.1983],
+      "betxí": [39.9283, -0.1983],
+      "l'alcudia": [39.1961, -0.5061],
+      "l'alcúdia": [39.1961, -0.5061],
+      "alcudia": [39.1961, -0.5061],
+      "alberic": [39.1172, -0.5186],
+      "sollana": [39.2781, -0.3808],
+      "favara": [39.1278, -0.2906],
+      "tavernes de la valldigna": [39.0717, -0.2661],
+      "xeraco": [39.0347, -0.2289],
+      "xeresa": [39.0094, -0.2181],
+      "bellreguard": [38.9458, -0.1633],
+      "riba-roja de turia": [39.5469, -0.5694],
+      "riba-roja de túria": [39.5469, -0.5694],
+      "san antonio de benageber": [39.5614, -0.4994],
+      "bocairent": [38.7669, -0.6128],
+      "enguera": [38.9786, -0.6878],
+      "anna": [39.0208, -0.6456],
+      "chella": [39.0436, -0.6606],
+      "bolbaite": [39.0617, -0.6750],
+      "vallada": [38.8953, -0.6908]
     };
+
+    function resolveCityCoords(rawCity, prov) {
+      if (!rawCity) return TOWN_COORDS["valencia"];
+      let norm = rawCity.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+      if (TOWN_COORDS[norm]) return TOWN_COORDS[norm];
+
+      const noArt = norm.replace(/^(l'|el\s+|la\s+|els\s+|les\s+)/, '').trim();
+      if (TOWN_COORDS[noArt]) return TOWN_COORDS[noArt];
+
+      if (rawCity.includes('-')) {
+        const parts = rawCity.split('-').map(s => s.trim().toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, ""));
+        for (const p of parts) {
+          if (TOWN_COORDS[p]) return TOWN_COORDS[p];
+          const pNoArt = p.replace(/^(l'|el\s+|la\s+|els\s+|les\s+)/, '').trim();
+          if (TOWN_COORDS[pNoArt]) return TOWN_COORDS[pNoArt];
+        }
+      }
+
+      for (const [k, v] of Object.entries(TOWN_COORDS)) {
+        if (k.length > 4 && (norm.startsWith(k) || k.startsWith(norm))) {
+          return v;
+        }
+      }
+
+      if (/Alacant|Alicante/i.test(prov)) return TOWN_COORDS["alacant"];
+      if (/Castell/i.test(prov)) return TOWN_COORDS["castello de la plana"];
+      return TOWN_COORDS["valencia"];
+    }
 
     let PLAZAS = [
       // 206 - Matemáticas
@@ -482,37 +665,11 @@
     } catch(e) {}
 
     let activeTabFilter = 'ALL';
-    let currentOriginCoords = TOWN_COORDS["carlet"];
+    let currentOriginCoords = { lat: 39.2252, lon: -0.5202 };
     let currentCalculatedData = [];
+    const routeCache = new Map();
 
-    async function getAccurateRoadRoute(lat1, lon1, lat2, lon2) {
-      try {
-        const res = await fetch(`/api/route?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.distKm) {
-            return {
-              distKm: data.distKm,
-              minutes: data.minutes,
-              durationStr: formatDuration(data.minutes)
-            };
-          }
-        }
-      } catch (err) {
-        try {
-          const url = `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`;
-          const res = await fetch(url);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.routes && data.routes.length > 0) {
-              const distKm = Math.round((data.routes[0].distance / 1000) * 10) / 10;
-              const minutes = Math.round(data.routes[0].duration / 60);
-              return { distKm, minutes, durationStr: formatDuration(minutes) };
-            }
-          }
-        } catch (e) {}
-      }
-
+    function computeRoadDistance(lat1, lon1, lat2, lon2) {
       const R = 6371;
       const dLat = (lat2 - lat1) * Math.PI / 180;
       const dLon = (lon2 - lon1) * Math.PI / 180;
@@ -523,8 +680,8 @@
       const straightKm = R * c;
       
       let roadFactor = 1.28;
-      if (straightKm > 100) roadFactor = 1.24;
-      else if (straightKm < 25) roadFactor = 1.33;
+      if (straightKm > 100) roadFactor = 1.25;
+      else if (straightKm < 20) roadFactor = 1.34;
 
       const roadKm = Math.round(straightKm * roadFactor * 10) / 10;
       let avgSpeed = 82;
@@ -533,6 +690,38 @@
 
       const minutes = Math.round((roadKm / avgSpeed) * 60);
       return { distKm: roadKm, minutes, durationStr: formatDuration(minutes) };
+    }
+
+    async function getAccurateRoadRoute(lat1, lon1, lat2, lon2) {
+      const cacheKey = `${lat1.toFixed(3)},${lon1.toFixed(3)}_${lat2.toFixed(3)},${lon2.toFixed(3)}`;
+      if (routeCache.has(cacheKey)) {
+        return routeCache.get(cacheKey);
+      }
+
+      const fallback = computeRoadDistance(lat1, lon1, lat2, lon2);
+
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 1800);
+        const res = await fetch(`/api/route?lat1=${lat1}&lon1=${lon1}&lat2=${lat2}&lon2=${lon2}`, { signal: controller.signal }).catch(() => null);
+        clearTimeout(timeoutId);
+
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data && data.distKm) {
+            const result = {
+              distKm: data.distKm,
+              minutes: data.minutes,
+              durationStr: formatDuration(data.minutes)
+            };
+            routeCache.set(cacheKey, result);
+            return result;
+          }
+        }
+      } catch (err) {}
+
+      routeCache.set(cacheKey, fallback);
+      return fallback;
     }
 
     function formatDuration(totalMins) {
@@ -553,10 +742,9 @@
       document.getElementById('currentOriginLabel').innerText = originName;
       document.getElementById('loadingIndicator').classList.remove('hidden');
 
-      const normName = originName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-
-      if (TOWN_COORDS[normName]) {
-        currentOriginCoords = { lat: TOWN_COORDS[normName][0], lon: TOWN_COORDS[normName][1] };
+      const originCoords = resolveCityCoords(originName, "València");
+      if (originCoords) {
+        currentOriginCoords = { lat: originCoords[0], lon: originCoords[1] };
       } else {
         try {
           const resp = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(originName + ', Spain')}&format=json&limit=1`);
@@ -569,25 +757,61 @@
         }
       }
 
-      const calculated = [];
-      for (const p of PLAZAS) {
-        const route = await getAccurateRoadRoute(currentOriginCoords.lat, currentOriginCoords.lon, p.lat, p.lon);
-        calculated.push({
+      // 1. Instant calculation for all plazas (0ms delay)
+      const calculated = PLAZAS.map(p => {
+        const cacheKey = `${currentOriginCoords.lat.toFixed(3)},${currentOriginCoords.lon.toFixed(3)}_${p.lat.toFixed(3)},${p.lon.toFixed(3)}`;
+        const route = routeCache.get(cacheKey) || computeRoadDistance(currentOriginCoords.lat, currentOriginCoords.lon, p.lat, p.lon);
+        return {
           ...p,
           distKm: route.distKm,
           minutes: route.minutes,
           durationStr: route.durationStr,
           gmapsUrl: `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originName + ', Spain')}&destination=${encodeURIComponent(p.centre + ', ' + p.city + ', Spain')}`
-        });
-      }
+        };
+      });
 
-      // SIEMPRE ORDENADOS POR DISTANCIA (menor a mayor km)
+      // ALWAYS ORDERED BY DISTANCE (km ascending)
       calculated.sort((a, b) => a.distKm - b.distKm);
-
       currentCalculatedData = calculated;
       document.getElementById('loadingIndicator').classList.add('hidden');
       updateTabBadges();
       renderTable();
+
+      // 2. Background precision refinement for unique destinations (without freezing the page)
+      const uniqueDestCoords = [];
+      const seen = new Set();
+      for (const p of PLAZAS) {
+        const key = `${p.lat.toFixed(3)},${p.lon.toFixed(3)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueDestCoords.push({ lat: p.lat, lon: p.lon });
+        }
+      }
+
+      const uncached = uniqueDestCoords.filter(d => !routeCache.has(`${currentOriginCoords.lat.toFixed(3)},${currentOriginCoords.lon.toFixed(3)}_${d.lat.toFixed(3)},${d.lon.toFixed(3)}`));
+      if (uncached.length > 0) {
+        (async () => {
+          let updated = false;
+          for (let i = 0; i < Math.min(uncached.length, 25); i++) {
+            const dest = uncached[i];
+            const route = await getAccurateRoadRoute(currentOriginCoords.lat, currentOriginCoords.lon, dest.lat, dest.lon);
+            if (route) updated = true;
+          }
+          if (updated) {
+            currentCalculatedData.forEach(item => {
+              const cacheKey = `${currentOriginCoords.lat.toFixed(3)},${currentOriginCoords.lon.toFixed(3)}_${item.lat.toFixed(3)},${item.lon.toFixed(3)}`;
+              if (routeCache.has(cacheKey)) {
+                const r = routeCache.get(cacheKey);
+                item.distKm = r.distKm;
+                item.minutes = r.minutes;
+                item.durationStr = r.durationStr;
+              }
+            });
+            currentCalculatedData.sort((a, b) => a.distKm - b.distKm);
+            renderTable();
+          }
+        })();
+      }
     }
 
     function setTabFilter(tabIndex) {
@@ -930,7 +1154,7 @@
               currentProv = line;
             }
 
-            const rowMatch = line.match(/([A-ZÁÉÍÓÚÀÈÒÏÜÇ\s\-\'\.]+?)\s+-\s+(\d{8})\s+-\s+(.+)/i);
+            const rowMatch = line.match(/([A-ZÁÉÍÓÚÀÈÒÏÜÇÑa-záéíóúàèòïüçñ\s\-\'\.]+?)\s+-\s+(\d{8})\s+-\s+(.+)/i);
             if (rowMatch && currentSpec) {
               let rawCity = rowMatch[1].trim().replace(/^\d+\s+/, '');
               const code = rowMatch[2].trim();
@@ -959,8 +1183,7 @@
               if (/Centre singular|singular/i.test(remainder)) obs = "Centre singular";
               if (/dif[ií]cil/i.test(remainder)) obs += (obs !== "—" ? " / " : "") + "Difícil provisió";
 
-              const normCity = rawCity.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-              const cityCoord = TOWN_COORDS[normCity] || [39.4699, -0.3763];
+              const cityCoord = resolveCityCoords(rawCity, currentProv);
 
               newPlazas.push({
                 spec: currentSpec,
