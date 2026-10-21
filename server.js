@@ -272,6 +272,18 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
+  // Route: /centros_db.js
+  if (parsedUrl.pathname === '/centros_db.js') {
+    const jsPath = path.join(WORKSPACE_DIR, 'public', 'centros_db.js');
+    const fallbackPath = path.join(WORKSPACE_DIR, 'centros_db.js');
+    const target = fs.existsSync(jsPath) ? jsPath : fallbackPath;
+    if (fs.existsSync(target)) {
+      res.writeHead(200, { 'Content-Type': 'application/javascript; charset=utf-8' });
+      fs.createReadStream(target).pipe(res);
+      return;
+    }
+  }
+
   // Route: / or /app_adjudicaciones.html or /index.html
   if (parsedUrl.pathname === '/' || parsedUrl.pathname === '/app_adjudicaciones.html' || parsedUrl.pathname === '/index.html') {
     if (fs.existsSync(HTML_FILE)) {

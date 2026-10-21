@@ -1,5 +1,8 @@
 node_modules
 *.exe
 *.pdf
+*.mp3
+*copia*
+extract_pdf.js
 .vercel
 MyOpenSpecProject
